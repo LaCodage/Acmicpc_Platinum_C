@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <iostream>
+#include <climits>
+#include <vector>
+#include <queue>
+#include <string.h> 
+#define MAX 550
+using namespace std; 
+
+int n, m, s, e;
+int a, b, c;
+int dist[MAX], v[MAX][MAX];
+vector <int> side[MAX]; 
+vector <int> prev_v[MAX];
+
+void Dijkstra(int start) 
+{  
+    priority_queue <pair<int, int>, vector<pair<int, int> >, greater<pair<int, int> > > pq; 
+
+    for (int i = 0; i < n; i++)
+	{
+		dist[i] = INT_MAX; 
+	}
+
+    dist[start] = 0; 
+    pq.push(make_pair(0, start)); 
+
+    while (!pq.empty()) 
+	{
+        int weight = pq.top().first; 
+        int curr_v = pq.top().second;
+        pq.pop(); 
+        for (int i = 0; i < side[curr_v].size(); i++) 
+		{ 
+            int next_v = side[curr_v][i]; 
+            int next_w = v[curr_v][next_v]; 
+            if (v[curr_v][next_v] != 0 && dist[next_v] > next_w + weight) 
+			{ 
+                dist[next_v] = next_w + weight; 
+                prev_v[next_v].clear();
+                prev_v[next_v].push_back(curr_v);  
+                pq.push(make_pair(dist[next_v], next_v));
+            }
+            else if (v[curr_v][next_v] != 0 && dist[next_v] == next_w + weight) 
+			{
+                prev_v[next_v].push_back(curr_v);  
+            }
+        }
+    }
+}
+
+void Remove() 
+{
+    queue <int> q; 
+    q.push(e); 
+    bool visited[MAX] = {false, };
+    visited[e] = true; 
+    
+    while (!q.empty()) 
+	{ 
+        int cnt = q.front(); 
+		q.pop();
+        for (int i = 0 ; i < prev_v[cnt].size(); i++) 
+		{
+            int prev = prev_v[cnt][i]; 
+            v[prev][cnt] = 0; 
+            if (!visited[prev]) 
+			{ 
+                q.push(prev);  
+                visited[prev] = true;
+            }
+        }
+    }
+}
+
+int main(void)
+{    
+	while (1) 
+	{    
+        scanf("%d%d", &n, &m);
+        if (n == 0 && m == 0) 
+		{
+			break; 
+		}
+		scanf("%d%d", &s, &e);
+        for (int i = 0; i < m; i++) 
+		{
+            scanf("%d%d%d", &a, &b, &c);
+            side[a].push_back(b);
+            v[a][b] = c;
+        }
+        Dijkstra(s);
+        Remove();
+        Dijkstra(s);
+        if (dist[e] == INT_MAX) 
+		{
+			puts("-1");
+		}
+        else 
+		{
+			printf("%d\n", dist[e]);
+		}
+        for (int i = 0; i < MAX; i++)
+		{
+            memset(v[i], 0, sizeof(int) * MAX);
+            if (side[i].size() > 0) 
+			{
+				side[i].clear();
+			} 
+            if (prev_v[i].size() > 0) 
+			{
+				prev_v[i].clear(); 
+			}
+        }
+    }
+    return 0; 
+}
