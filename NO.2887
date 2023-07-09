@@ -1,0 +1,151 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+#include <queue>
+using namespace std;
+
+typedef struct Planet
+{
+	int x;
+	int y;
+	int z;
+	int num;
+} planet;
+
+typedef struct Node
+{
+	int start;
+	int end;
+	int cost;
+} node;
+
+struct cmp
+{
+	bool operator()(node &a, node &b)
+	{
+		return a.cost > b.cost;
+	}
+};
+
+struct cmp_x
+{
+	bool operator()(planet &a, planet &b)
+	{
+		return a.x > b.x;
+	}
+};
+
+struct cmp_y
+{
+	bool operator()(planet &a, planet &b)
+	{
+		return a.y > b.y;
+	}
+};
+
+struct cmp_z
+{
+	bool operator()(planet &a, planet &b)
+	{
+		return a.z > b.z;
+	}
+};
+
+vector <planet> arr;
+int N, parent[110000];
+priority_queue <node, vector<node>, cmp> q;
+priority_queue <planet, vector<planet>, cmp_x> xq;
+priority_queue <planet, vector<planet>, cmp_y> yq;
+priority_queue <planet, vector<planet>, cmp_z> zq;
+
+int find(int u)
+{
+	if (u == parent[u])
+	{
+		return u;
+	}
+	
+	return parent[u] = find(parent[u]);
+}
+
+void merge(int u, int v)
+{
+	u = find(u);
+	v = find(v);
+	
+	if (u == v)
+	{
+		return;
+	}
+	
+	parent[v] = u;
+}
+
+int main(void)
+{
+	node now;
+	planet present;
+	int x, y, z, r = 0;
+	
+	scanf("%d", &N);
+	
+	for (int i = 1; i <= N; i++)
+	{
+		parent[i] = i;
+	}
+	
+	for (int i = 0; i < N; i++)
+	{
+		scanf("%d%d%d", &x, &y, &z);
+		arr.push_back({x, y, z, i + 1});
+		xq.push({x, y, z, i + 1});
+		yq.push({x, y, z, i + 1});
+		zq.push({x, y, z, i + 1});
+	}
+	
+	for (int i = 0; i < 3; i++)
+	{
+		if (i == 0)
+		{
+			while (!xq.empty())
+			{
+				present = xq.top();
+				xq.pop();
+				q.push({present.num, xq.top().num, abs(xq.top().x - present.x)});	
+			}
+		}
+		else if (i == 1)
+		{
+			while (!yq.empty())
+			{
+				present = yq.top();
+				yq.pop();
+				q.push({present.num, yq.top().num, abs(yq.top().y - present.y)});
+			}
+		}
+		else if (i == 2)
+		{
+			while (!zq.empty())
+			{
+				present = zq.top();
+				zq.pop();
+				q.push({present.num, zq.top().num, abs(zq.top().z - present.z)});
+			}
+		}
+	}
+		
+	while (!q.empty())
+	{
+		now = q.top();
+		q.pop();
+		if (find(now.start) != find(now.end))
+		{
+			r += now.cost;
+			merge(now.start, now.end);
+		}
+	}
+	
+	printf("%d", r);
+	
+	return 0;
+}
