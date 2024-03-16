@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <vector>
+#include <queue>
+using namespace std;
+
+typedef struct Node
+{
+	long long seq;
+	long long idx;
+} node;
+
+struct cmp
+{
+	bool operator()(node &a, node &b)
+	{
+		if (a.idx == b.idx)
+		{
+			return a.seq > b.seq;
+		}
+		else
+		{
+			return a.idx > b.idx;
+		}
+	}
+};
+
+vector<long long> segment;
+priority_queue <node, vector<node>, cmp> pq;
+
+long long Sum(long long now, long long left, long long right, long long start, long long end)
+{
+	if (end < left || right < start)
+	{
+		return 0;
+	}
+	
+	if (start <= left && right <= end)
+	{
+		return segment[now];
+	}
+	
+	if (left < right)
+	{
+		long long mid = (left + right) / 2;
+		long long ld = Sum(now * 2, left, mid, start, end);
+		long long rd = Sum(now * 2 + 1, mid + 1, right, start, end);
+		return ld + rd;
+	}
+}
+
+void Update(long long now, long long left, long long right, long long tag)
+{
+	if (tag < left || right < tag)
+	{
+		return;
+	}
+	
+	segment[now] += 1;
+	
+	if (left < right)
+	{
+		long long mid = (left + right) / 2;
+		Update(now * 2, left, mid, tag);
+		Update(now * 2 + 1, mid + 1, right, tag);
+	}
+}
+
+int main(void)
+{
+	long long n, swap = 0;
+	
+	scanf("%lld", &n);
+	
+	for (long long i = 1; i <= n; i++)
+	{
+		long long input;
+		scanf("%lld", &input);
+		pq.push({i, input});
+	}
+	
+	segment.resize(4 * n);
+	
+	for (long long i = 0; i < n; i++)
+	{
+		node now = pq.top();
+		pq.pop(); 
+		swap += Sum(1, 1, n, now.seq + 1, n);
+		Update(1, 1, n, now.seq);
+	}
+	
+	printf("%lld", swap);
+	
+	return 0;
+}
